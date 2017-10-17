@@ -17,6 +17,7 @@
 
 #include "builtin_interfaces/msg/time.hpp"
 
+#include "rclcpp/duration.hpp"
 #include "rclcpp/visibility_control.hpp"
 
 #include "rcl/time.h"
@@ -31,6 +32,11 @@ public:
   static
   Time
   now(rcl_time_source_type_t clock = RCL_SYSTEM_TIME);
+
+  RCLCPP_PUBLIC
+  static
+  Time
+  from_epoch(const rclcpp::Duration & duration);
 
   RCLCPP_PUBLIC
   Time(int32_t seconds, uint32_t nanoseconds, rcl_time_source_type_t clock = RCL_SYSTEM_TIME);
@@ -48,6 +54,9 @@ public:
   virtual ~Time();
 
   RCLCPP_PUBLIC
+  operator rclcpp::Duration() const;
+
+  RCLCPP_PUBLIC
   operator builtin_interfaces::msg::Time() const;
 
   RCLCPP_PUBLIC
@@ -60,34 +69,38 @@ public:
 
   RCLCPP_PUBLIC
   bool
-  operator==(const rclcpp::Time & rhs) const;
+  operator==(const Time & rhs) const;
 
   RCLCPP_PUBLIC
   bool
-  operator!=(const rclcpp::Time & rhs) const;
+  operator!=(const Time & rhs) const;
 
   RCLCPP_PUBLIC
   bool
-  operator<(const rclcpp::Time & rhs) const;
+  operator<(const Time & rhs) const;
 
   RCLCPP_PUBLIC
   bool
-  operator<=(const rclcpp::Time & rhs) const;
+  operator<=(const Time & rhs) const;
 
   RCLCPP_PUBLIC
   bool
-  operator>=(const rclcpp::Time & rhs) const;
+  operator>=(const Time & rhs) const;
 
   RCLCPP_PUBLIC
   bool
-  operator>(const rclcpp::Time & rhs) const;
+  operator>(const Time & rhs) const;
+
+  RCLCPP_PUBLIC
+  rclcpp::Duration
+  operator+(const rclcpp::Duration & rhs) const;
 
   RCLCPP_PUBLIC
   Time
-  operator+(const rclcpp::Time & rhs) const;
+  operator-(const rclcpp::Duration & rhs) const;
 
   RCLCPP_PUBLIC
-  Time
+  rclcpp::Duration
   operator-(const rclcpp::Time & rhs) const;
 
   RCLCPP_PUBLIC

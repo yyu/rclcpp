@@ -109,6 +109,8 @@ Time::Time(const Time & rhs)
   rcl_time_.nanoseconds = rhs.rcl_time_.nanoseconds;
 }
 
+// TODO(wjwwood): there is an implicit assumption here about the time source,
+//                which is that it is always system time, which might not be true.
 Time::Time(const builtin_interfaces::msg::Time & time_msg)  // NOLINT
 : rcl_time_source_(init_time_source(RCL_SYSTEM_TIME)),
   rcl_time_(init_time_point(rcl_time_source_))
@@ -219,34 +221,41 @@ Time::operator>(const rclcpp::Time & rhs) const
   return rcl_time_.nanoseconds > rhs.rcl_time_.nanoseconds;
 }
 
-Time
-Time::operator+(const rclcpp::Time & rhs) const
+rclcpp::Duration
+Time::operator+(const rclcpp::Duration & rhs) const
 {
-  if (rcl_time_.time_source->type != rhs.rcl_time_.time_source->type) {
-    throw std::runtime_error("can't add times with different time sources");
-  }
-
-  auto ns = rcl_time_.nanoseconds + rhs.rcl_time_.nanoseconds;
+  auto ns = rcl_time_.nanoseconds + rhs.to_nanoseconds();
   if (ns < rcl_time_.nanoseconds) {
     throw std::overflow_error("addition leads to uint64_t overflow");
   }
 
-  return Time(rcl_time_.nanoseconds + rhs.rcl_time_.nanoseconds);
+  return Duration(ns);
 }
 
 Time
-Time::operator-(const rclcpp::Time & rhs) const
+Time::operator-(const rclcpp::Duration & rhs) const
 {
-  if (rcl_time_.time_source->type != rhs.rcl_time_.time_source->type) {
-    throw std::runtime_error("can't add times with different time sources");
-  }
-
-  auto ns = rcl_time_.nanoseconds - rhs.rcl_time_.nanoseconds;
+  uint64_t ns = rcl_time_.nanoseconds - rhs.to_nanoseconds();
   if (ns > rcl_time_.nanoseconds) {
     throw std::underflow_error("subtraction leads to uint64_t underflow");
   }
 
-  return Time(rcl_time_.nanoseconds - rhs.rcl_time_.nanoseconds);
+  return Time(ns);
+}
+
+Duration
+Time::operator-(const rclcpp::Time & rhs) const
+{
+  if (rcl_time_.time_source->type != rhs.rcl_time_.time_source->type) {
+    throw std::runtime_error("can't subtract times with different time sources");
+  }
+
+  int64_t ns = rcl_time_.nanoseconds - rhs.rcl_time_.nanoseconds;
+  if (ns > rcl_time_.nanoseconds) {
+    throw std::underflow_error("subtraction leads to uint64_t underflow");
+  }
+
+  return Duration(ns);
 }
 
 uint64_t
