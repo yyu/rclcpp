@@ -371,4 +371,21 @@ TEST_F(TestTimeSource, parameter_activation) {
   }
   rclcpp::spin_some(node);
   EXPECT_FALSE(ros_clock->ros_time_is_active());
+
+  // This test should not be affected by the presence of a clock publisher
+  auto clock_pub = node->create_publisher<rosgraph_msgs::msg::Clock>("clock",
+      rmw_qos_profile_default);
+  rclcpp::WallRate loop_rate(50);
+  for (int i = 0; i < 5; ++i) {
+    if (!rclcpp::ok()) {
+      break;  // Break for ctrl-c
+    }
+    auto msg = std::make_shared<rosgraph_msgs::msg::Clock>();
+    msg->clock.sec = i;
+    msg->clock.nanosec = 1000;
+    clock_pub->publish(msg);
+    rclcpp::spin_some(node);
+    loop_rate.sleep();
+  }
+  EXPECT_FALSE(ros_clock->ros_time_is_active());
 }
