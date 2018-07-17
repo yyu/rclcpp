@@ -336,7 +336,7 @@ TEST_F(TestTimeSource, parameter_activation) {
   rclcpp::spin_some(node);
   EXPECT_FALSE(ros_clock->ros_time_is_active());
 
-  // This node's use of sim time should not be affected by the presence of a clock publisher
+  // This clock's use of sim time should not be affected by the presence of a clock publisher
   trigger_clock_changes(node);
   EXPECT_FALSE(ros_clock->ros_time_is_active());
 }
