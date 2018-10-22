@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-#include "./parameter_service_names.hpp"
+#include "parameter_service_names.hpp"
 
 using rclcpp::ParameterService;
 
