@@ -41,13 +41,19 @@ public:
 
   // TODO(sloretz) `set_cancelled`, `set_succeeded`, `set_aborted`
 
-  // TODO(sloretz) examples has this attribute as 'goal'
-  /// The original request message describing the goal.
-  const typename ACTION::Goal goal_;
+  /// Get the original request message describing the goal.
+  inline typename ACTION::Goal getGoalMessage() const
+  {
+    return goal_;
+  }
 
 protected:
   explicit ServerGoalHandle(const typename ACTION::Goal goal)
   : goal_(goal) {}
+
+private:
+  /// The original request message describing the goal.
+  const typename ACTION::Goal goal_;
 };
 }  // namespace rclcpp_action
 
