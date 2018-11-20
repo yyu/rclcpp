@@ -34,6 +34,7 @@
 #include "rclcpp_action/create_server.hpp"
 #include "rclcpp_action/server.hpp"
 #include "rclcpp_action/server_goal_handle.hpp"
+#include "rclcpp_action/types.hpp"
 #include "rclcpp_action/visibility_control.hpp"
 
 #endif  // RCLCPP_ACTION__RCLCPP_ACTION_HPP_
