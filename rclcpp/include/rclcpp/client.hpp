@@ -35,6 +35,7 @@
 #include "rclcpp/utilities.hpp"
 #include "rclcpp/expand_topic_or_service_name.hpp"
 #include "rclcpp/visibility_control.hpp"
+#include "rclcpp/waitable.hpp"
 
 #include "rcutils/logging_macros.h"
 
@@ -49,7 +50,7 @@ namespace node_interfaces
 class NodeBaseInterface;
 }  // namespace node_interfaces
 
-class ClientBase
+class ClientBase : public Waitable
 {
 public:
   RCLCPP_SMART_PTR_DEFINITIONS_NOT_COPYABLE(ClientBase)
@@ -61,6 +62,11 @@ public:
 
   RCLCPP_PUBLIC
   virtual ~ClientBase();
+  
+  RCLCPP_PUBLIC
+  virtual
+  size_t
+  get_number_of_ready_clients() override;
 
   RCLCPP_PUBLIC
   const char *
@@ -77,6 +83,21 @@ public:
   RCLCPP_PUBLIC
   bool
   service_is_ready() const;
+
+  RCLCPP_PUBLIC
+  virtual
+  bool
+  add_to_wait_set(rcl_wait_set_t * wait_set) override; 
+
+  RCLCPP_PUBLIC
+  virtual
+  bool
+  is_ready(rcl_wait_set_t *) override;
+  
+  RCLCPP_PUBLIC
+  virtual
+  void
+  execute() override;
 
   template<typename RatioT = std::milli>
   bool
@@ -112,6 +133,8 @@ protected:
   std::shared_ptr<rcl_node_t> node_handle_;
 
   std::shared_ptr<rcl_client_t> client_handle_;
+
+  size_t wait_set_index_;
 };
 
 template<typename ServiceT>

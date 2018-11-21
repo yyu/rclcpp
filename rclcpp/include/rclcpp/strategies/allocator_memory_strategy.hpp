@@ -85,7 +85,7 @@ public:
   {
     subscription_handles_.clear();
     service_handles_.clear();
-    client_handles_.clear();
+    // client_handles_.clear();
     timer_handles_.clear();
     waitable_handles_.clear();
   }
@@ -108,11 +108,13 @@ public:
         service_handles_[i].reset();
       }
     }
+    /*
     for (size_t i = 0; i < client_handles_.size(); ++i) {
       if (!wait_set->clients[i]) {
         client_handles_[i].reset();
       }
     }
+    */
     for (size_t i = 0; i < timer_handles_.size(); ++i) {
       if (!wait_set->timers[i]) {
         timer_handles_[i].reset();
@@ -134,10 +136,12 @@ public:
       service_handles_.end()
     );
 
+    /*
     client_handles_.erase(
       std::remove(client_handles_.begin(), client_handles_.end(), nullptr),
       client_handles_.end()
     );
+    */
 
     timer_handles_.erase(
       std::remove(timer_handles_.begin(), timer_handles_.end(), nullptr),
@@ -183,7 +187,8 @@ public:
         for (auto & weak_client : group->get_client_ptrs()) {
           auto client = weak_client.lock();
           if (client) {
-            client_handles_.push_back(client->get_client_handle());
+            waitable_handles_.push_back(client);
+            // client_handles_.push_back(client->get_client_handle());
           }
         }
         for (auto & weak_timer : group->get_timer_ptrs()) {
@@ -214,6 +219,7 @@ public:
       }
     }
 
+    /*
     for (auto client : client_handles_) {
       if (rcl_wait_set_add_client(wait_set, client.get(), NULL) != RCL_RET_OK) {
         RCUTILS_LOG_ERROR_NAMED(
@@ -222,6 +228,7 @@ public:
         return false;
       }
     }
+    */
 
     for (auto service : service_handles_) {
       if (rcl_wait_set_add_service(wait_set, service.get(), NULL) != RCL_RET_OK) {
@@ -341,6 +348,7 @@ public:
     }
   }
 
+  /*
   virtual void
   get_next_client(executor::AnyExecutable & any_exec, const WeakNodeVector & weak_nodes)
   {
@@ -373,6 +381,7 @@ public:
       it = client_handles_.erase(it);
     }
   }
+  */
 
   virtual void
   get_next_waitable(executor::AnyExecutable & any_exec, const WeakNodeVector & weak_nodes)
@@ -432,7 +441,7 @@ public:
 
   size_t number_of_ready_clients() const
   {
-    size_t number_of_clients = client_handles_.size();
+    size_t number_of_clients = 0u;  // client_handles_.size();
     for (auto waitable : waitable_handles_) {
       number_of_clients += waitable->get_number_of_ready_clients();
     }
@@ -471,7 +480,7 @@ private:
 
   VectorRebind<std::shared_ptr<const rcl_subscription_t>> subscription_handles_;
   VectorRebind<std::shared_ptr<const rcl_service_t>> service_handles_;
-  VectorRebind<std::shared_ptr<const rcl_client_t>> client_handles_;
+  // VectorRebind<std::shared_ptr<const rcl_client_t>> client_handles_;
   VectorRebind<std::shared_ptr<const rcl_timer_t>> timer_handles_;
   VectorRebind<std::shared_ptr<Waitable>> waitable_handles_;
 

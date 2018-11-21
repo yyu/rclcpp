@@ -278,9 +278,9 @@ Executor::execute_any_executable(AnyExecutable & any_exec)
   if (any_exec.service) {
     execute_service(any_exec.service);
   }
-  if (any_exec.client) {
-    execute_client(any_exec.client);
-  }
+  // if (any_exec.client) {
+  //   execute_client(any_exec.client);
+  // }
   if (any_exec.waitable) {
     any_exec.waitable->execute();
   }
@@ -385,6 +385,7 @@ Executor::execute_service(
   }
 }
 
+/*
 void
 Executor::execute_client(
   rclcpp::ClientBase::SharedPtr client)
@@ -405,6 +406,7 @@ Executor::execute_client(
     rcl_reset_error();
   }
 }
+*/
 
 void
 Executor::wait_for_work(std::chrono::nanoseconds timeout)
@@ -549,10 +551,10 @@ Executor::get_next_ready_executable(AnyExecutable & any_executable)
     return true;
   }
   // Check the clients to see if there are any that are ready
-  memory_strategy_->get_next_client(any_executable, weak_nodes_);
-  if (any_executable.client) {
-    return true;
-  }
+  // memory_strategy_->get_next_client(any_executable, weak_nodes_);
+  // if (any_executable.client) {
+  //   return true;
+  // }
   // Check the waitables to see if there are any that are ready
   memory_strategy_->get_next_waitable(any_executable, weak_nodes_);
   if (any_executable.waitable) {

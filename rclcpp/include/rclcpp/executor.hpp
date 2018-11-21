@@ -311,9 +311,9 @@ protected:
   static void
   execute_service(rclcpp::ServiceBase::SharedPtr service);
 
-  RCLCPP_PUBLIC
-  static void
-  execute_client(rclcpp::ClientBase::SharedPtr client);
+  // RCLCPP_PUBLIC
+  // static void
+  // execute_client(rclcpp::ClientBase::SharedPtr client);
 
   RCLCPP_PUBLIC
   void

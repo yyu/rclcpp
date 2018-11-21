@@ -74,6 +74,7 @@ MemoryStrategy::get_service_by_handle(
   return nullptr;
 }
 
+/*
 rclcpp::ClientBase::SharedPtr
 MemoryStrategy::get_client_by_handle(
   std::shared_ptr<const rcl_client_t> client_handle,
@@ -99,6 +100,7 @@ MemoryStrategy::get_client_by_handle(
   }
   return nullptr;
 }
+*/
 
 rclcpp::node_interfaces::NodeBaseInterface::SharedPtr
 MemoryStrategy::get_node_by_group(
@@ -175,6 +177,7 @@ MemoryStrategy::get_group_by_service(
   return nullptr;
 }
 
+/*
 rclcpp::callback_group::CallbackGroup::SharedPtr
 MemoryStrategy::get_group_by_client(
   rclcpp::ClientBase::SharedPtr client,
@@ -200,6 +203,7 @@ MemoryStrategy::get_group_by_client(
   }
   return nullptr;
 }
+*/
 
 rclcpp::callback_group::CallbackGroup::SharedPtr
 MemoryStrategy::get_group_by_waitable(

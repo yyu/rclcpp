@@ -68,6 +68,12 @@ ClientBase::~ClientBase()
   client_handle_.reset();
 }
 
+size_t
+ClientBase::get_number_of_ready_clients()
+{
+  return 1u;
+}
+
 const char *
 ClientBase::get_service_name() const
 {
@@ -98,6 +104,48 @@ ClientBase::service_is_ready() const
     throw_from_rcl_error(ret, "rcl_service_server_is_available failed");
   }
   return is_ready;
+}
+
+bool
+ClientBase::add_to_wait_set(rcl_wait_set_t * wait_set)
+{
+  rcl_ret_t ret = rcl_wait_set_add_client(
+    wait_set, this->get_client_handle().get(), &this->wait_set_index_);
+  if (RCL_RET_OK != ret) {
+    RCUTILS_LOG_ERROR_NAMED(
+      "rclcpp",
+      "Couldn't add client to wait set: %s", rcl_get_error_string().str);
+    return false;
+  }
+  return true;
+}
+
+bool
+ClientBase::is_ready(rcl_wait_set_t * wait_set)
+{
+  // TODO(jacobperron): Error handling. Check if wait set is valid
+  //                    and if wait set index is out-of-bounds
+  return (wait_set->clients[this->wait_set_index_] == this->get_client_handle().get());
+}
+
+void
+ClientBase::execute()
+{
+  auto request_header = this->create_request_header();
+  std::shared_ptr<void> response = this->create_response();
+  rcl_ret_t status = rcl_take_response(
+    this->get_client_handle().get(),
+    request_header.get(),
+    response.get());
+  if (status == RCL_RET_OK) {
+    this->handle_response(request_header, response);
+  } else if (status != RCL_RET_CLIENT_TAKE_FAILED) {
+    RCUTILS_LOG_ERROR_NAMED(
+      "rclcpp",
+      "take response failed for client of service '%s': %s",
+      this->get_service_name(), rcl_get_error_string().str);
+    rcl_reset_error();
+  }
 }
 
 bool

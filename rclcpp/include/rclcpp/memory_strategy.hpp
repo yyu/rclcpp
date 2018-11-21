@@ -73,10 +73,10 @@ public:
     rclcpp::executor::AnyExecutable & any_exec,
     const WeakNodeVector & weak_nodes) = 0;
 
-  virtual void
-  get_next_client(
-    rclcpp::executor::AnyExecutable & any_exec,
-    const WeakNodeVector & weak_nodes) = 0;
+  // virtual void
+  // get_next_client(
+  //   rclcpp::executor::AnyExecutable & any_exec,
+  //   const WeakNodeVector & weak_nodes) = 0;
 
   virtual void
   get_next_waitable(
@@ -96,10 +96,10 @@ public:
     std::shared_ptr<const rcl_service_t> service_handle,
     const WeakNodeVector & weak_nodes);
 
-  static rclcpp::ClientBase::SharedPtr
-  get_client_by_handle(
-    std::shared_ptr<const rcl_client_t> client_handle,
-    const WeakNodeVector & weak_nodes);
+  // static rclcpp::ClientBase::SharedPtr
+  // get_client_by_handle(
+  //   std::shared_ptr<const rcl_client_t> client_handle,
+  //   const WeakNodeVector & weak_nodes);
 
   static rclcpp::node_interfaces::NodeBaseInterface::SharedPtr
   get_node_by_group(
@@ -116,10 +116,10 @@ public:
     rclcpp::ServiceBase::SharedPtr service,
     const WeakNodeVector & weak_nodes);
 
-  static rclcpp::callback_group::CallbackGroup::SharedPtr
-  get_group_by_client(
-    rclcpp::ClientBase::SharedPtr client,
-    const WeakNodeVector & weak_nodes);
+  // static rclcpp::callback_group::CallbackGroup::SharedPtr
+  // get_group_by_client(
+  //   rclcpp::ClientBase::SharedPtr client,
+  //   const WeakNodeVector & weak_nodes);
 
   static rclcpp::callback_group::CallbackGroup::SharedPtr
   get_group_by_waitable(
