@@ -275,12 +275,6 @@ Executor::execute_any_executable(AnyExecutable & any_exec)
   if (any_exec.subscription_intra_process) {
     execute_intra_process_subscription(any_exec.subscription_intra_process);
   }
-  if (any_exec.service) {
-    execute_service(any_exec.service);
-  }
-  // if (any_exec.client) {
-  //   execute_client(any_exec.client);
-  // }
   if (any_exec.waitable) {
     any_exec.waitable->execute();
   }
@@ -363,50 +357,6 @@ Executor::execute_timer(
 {
   timer->execute_callback();
 }
-
-void
-Executor::execute_service(
-  rclcpp::ServiceBase::SharedPtr service)
-{
-  auto request_header = service->create_request_header();
-  std::shared_ptr<void> request = service->create_request();
-  rcl_ret_t status = rcl_take_request(
-    service->get_service_handle().get(),
-    request_header.get(),
-    request.get());
-  if (status == RCL_RET_OK) {
-    service->handle_request(request_header, request);
-  } else if (status != RCL_RET_SERVICE_TAKE_FAILED) {
-    RCUTILS_LOG_ERROR_NAMED(
-      "rclcpp",
-      "take request failed for server of service '%s': %s",
-      service->get_service_name(), rcl_get_error_string().str);
-    rcl_reset_error();
-  }
-}
-
-/*
-void
-Executor::execute_client(
-  rclcpp::ClientBase::SharedPtr client)
-{
-  auto request_header = client->create_request_header();
-  std::shared_ptr<void> response = client->create_response();
-  rcl_ret_t status = rcl_take_response(
-    client->get_client_handle().get(),
-    request_header.get(),
-    response.get());
-  if (status == RCL_RET_OK) {
-    client->handle_response(request_header, response);
-  } else if (status != RCL_RET_CLIENT_TAKE_FAILED) {
-    RCUTILS_LOG_ERROR_NAMED(
-      "rclcpp",
-      "take response failed for client of service '%s': %s",
-      client->get_service_name(), rcl_get_error_string().str);
-    rcl_reset_error();
-  }
-}
-*/
 
 void
 Executor::wait_for_work(std::chrono::nanoseconds timeout)
@@ -545,16 +495,6 @@ Executor::get_next_ready_executable(AnyExecutable & any_executable)
   if (any_executable.subscription || any_executable.subscription_intra_process) {
     return true;
   }
-  // Check the services to see if there are any that are ready
-  memory_strategy_->get_next_service(any_executable, weak_nodes_);
-  if (any_executable.service) {
-    return true;
-  }
-  // Check the clients to see if there are any that are ready
-  // memory_strategy_->get_next_client(any_executable, weak_nodes_);
-  // if (any_executable.client) {
-  //   return true;
-  // }
   // Check the waitables to see if there are any that are ready
   memory_strategy_->get_next_waitable(any_executable, weak_nodes_);
   if (any_executable.waitable) {

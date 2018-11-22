@@ -51,7 +51,6 @@ void TimeSource::attachNode(rclcpp::Node::SharedPtr node)
     node->get_node_base_interface(),
     node->get_node_topics_interface(),
     node->get_node_graph_interface(),
-    node->get_node_services_interface(),
     node->get_node_waitables_interface());
 }
 
@@ -59,13 +58,11 @@ void TimeSource::attachNode(
   const rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_base_interface,
   const rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr node_topics_interface,
   const rclcpp::node_interfaces::NodeGraphInterface::SharedPtr node_graph_interface,
-  const rclcpp::node_interfaces::NodeServicesInterface::SharedPtr node_services_interface,
   const rclcpp::node_interfaces::NodeWaitablesInterface::SharedPtr node_waitables_interface)
 {
   node_base_ = node_base_interface;
   node_topics_ = node_topics_interface;
   node_graph_ = node_graph_interface;
-  node_services_ = node_services_interface;
   node_waitables_ = node_waitables_interface;
   // TODO(tfoote): Update QOS
 
@@ -73,7 +70,6 @@ void TimeSource::attachNode(
     node_base_,
     node_topics_,
     node_graph_,
-    node_services_,
     node_waitables_
   );
   parameter_subscription_ =
@@ -89,7 +85,6 @@ void TimeSource::detachNode()
   node_base_.reset();
   node_topics_.reset();
   node_graph_.reset();
-  node_services_.reset();
   disable_ros_time();
 }
 
@@ -121,7 +116,7 @@ void TimeSource::detachClock(std::shared_ptr<rclcpp::Clock> clock)
 
 TimeSource::~TimeSource()
 {
-  if (node_base_ || node_topics_ || node_graph_ || node_services_) {
+  if (node_base_ || node_topics_ || node_graph_ || node_waitables_) {
     this->detachNode();
   }
 }

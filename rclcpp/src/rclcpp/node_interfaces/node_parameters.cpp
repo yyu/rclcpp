@@ -35,7 +35,7 @@ using rclcpp::node_interfaces::NodeParameters;
 NodeParameters::NodeParameters(
   const rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_base,
   const rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr node_topics,
-  const rclcpp::node_interfaces::NodeServicesInterface::SharedPtr node_services,
+  const rclcpp::node_interfaces::NodeWaitablesInterface::SharedPtr node_waitables,
   const std::vector<rclcpp::Parameter> & initial_parameters,
   bool use_intra_process,
   bool start_parameter_services)
@@ -47,7 +47,7 @@ NodeParameters::NodeParameters(
   auto allocator = std::make_shared<AllocatorT>();
 
   if (start_parameter_services) {
-    parameter_service_ = std::make_shared<ParameterService>(node_base, node_services, this);
+    parameter_service_ = std::make_shared<ParameterService>(node_base, node_waitables, this);
   }
 
   events_publisher_ = rclcpp::create_publisher<MessageT, AllocatorT, PublisherT>(

@@ -23,12 +23,10 @@ NodeClock::NodeClock(
   rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_base,
   rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr node_topics,
   rclcpp::node_interfaces::NodeGraphInterface::SharedPtr node_graph,
-  rclcpp::node_interfaces::NodeServicesInterface::SharedPtr node_services,
   rclcpp::node_interfaces::NodeWaitablesInterface::SharedPtr node_waitables)
 : node_base_(node_base),
   node_topics_(node_topics),
   node_graph_(node_graph),
-  node_services_(node_services),
   node_waitables_(node_waitables),
   ros_clock_(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME))
 {
@@ -36,7 +34,6 @@ NodeClock::NodeClock(
     node_base_,
     node_topics_,
     node_graph_,
-    node_services_,
     node_waitables_);
   time_source_.attachClock(ros_clock_);
 }

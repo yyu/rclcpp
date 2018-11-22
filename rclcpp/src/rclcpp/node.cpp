@@ -71,7 +71,7 @@ Node::Node(
   node_parameters_(new rclcpp::node_interfaces::NodeParameters(
       node_base_,
       node_topics_,
-      node_services_,
+      node_waitables_,
       initial_parameters,
       use_intra_process_comms,
       start_parameter_services
@@ -80,7 +80,6 @@ Node::Node(
       node_base_,
       node_topics_,
       node_graph_,
-      node_services_,
       node_waitables_
     )),
   use_intra_process_comms_(use_intra_process_comms)

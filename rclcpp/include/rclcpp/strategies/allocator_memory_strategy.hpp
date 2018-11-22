@@ -84,17 +84,12 @@ public:
   void clear_handles()
   {
     subscription_handles_.clear();
-    service_handles_.clear();
-    // client_handles_.clear();
     timer_handles_.clear();
     waitable_handles_.clear();
   }
 
   virtual void remove_null_handles(rcl_wait_set_t * wait_set)
   {
-    // TODO(jacobperron): Check if wait set sizes are what we expect them to be?
-    //                    e.g. wait_set->size_of_clients == client_handles_.size()
-
     // Important to use subscription_handles_.size() instead of wait set's size since
     // there may be more subscriptions in the wait set due to Waitables added to the end.
     // The same logic applies for other entities.
@@ -103,18 +98,6 @@ public:
         subscription_handles_[i].reset();
       }
     }
-    for (size_t i = 0; i < service_handles_.size(); ++i) {
-      if (!wait_set->services[i]) {
-        service_handles_[i].reset();
-      }
-    }
-    /*
-    for (size_t i = 0; i < client_handles_.size(); ++i) {
-      if (!wait_set->clients[i]) {
-        client_handles_[i].reset();
-      }
-    }
-    */
     for (size_t i = 0; i < timer_handles_.size(); ++i) {
       if (!wait_set->timers[i]) {
         timer_handles_[i].reset();
@@ -129,11 +112,6 @@ public:
     subscription_handles_.erase(
       std::remove(subscription_handles_.begin(), subscription_handles_.end(), nullptr),
       subscription_handles_.end()
-    );
-
-    service_handles_.erase(
-      std::remove(service_handles_.begin(), service_handles_.end(), nullptr),
-      service_handles_.end()
     );
 
     timer_handles_.erase(
@@ -174,14 +152,13 @@ public:
         for (auto & weak_service : group->get_service_ptrs()) {
           auto service = weak_service.lock();
           if (service) {
-            service_handles_.push_back(service->get_service_handle());
+            waitable_handles_.push_back(service);
           }
         }
         for (auto & weak_client : group->get_client_ptrs()) {
           auto client = weak_client.lock();
           if (client) {
             waitable_handles_.push_back(client);
-            // client_handles_.push_back(client->get_client_handle());
           }
         }
         for (auto & weak_timer : group->get_timer_ptrs()) {
@@ -208,26 +185,6 @@ public:
         RCUTILS_LOG_ERROR_NAMED(
           "rclcpp",
           "Couldn't add subscription to wait set: %s", rcl_get_error_string().str);
-        return false;
-      }
-    }
-
-    /*
-    for (auto client : client_handles_) {
-      if (rcl_wait_set_add_client(wait_set, client.get(), NULL) != RCL_RET_OK) {
-        RCUTILS_LOG_ERROR_NAMED(
-          "rclcpp",
-          "Couldn't add client to wait set: %s", rcl_get_error_string().str);
-        return false;
-      }
-    }
-    */
-
-    for (auto service : service_handles_) {
-      if (rcl_wait_set_add_service(wait_set, service.get(), NULL) != RCL_RET_OK) {
-        RCUTILS_LOG_ERROR_NAMED(
-          "rclcpp",
-          "Couldn't add service to wait set: %s", rcl_get_error_string().str);
         return false;
       }
     }
@@ -307,76 +264,6 @@ public:
   }
 
   virtual void
-  get_next_service(
-    executor::AnyExecutable & any_exec,
-    const WeakNodeVector & weak_nodes)
-  {
-    auto it = service_handles_.begin();
-    while (it != service_handles_.end()) {
-      auto service = get_service_by_handle(*it, weak_nodes);
-      if (service) {
-        // Find the group for this handle and see if it can be serviced
-        auto group = get_group_by_service(service, weak_nodes);
-        if (!group) {
-          // Group was not found, meaning the service is not valid...
-          // Remove it from the ready list and continue looking
-          it = service_handles_.erase(it);
-          continue;
-        }
-        if (!group->can_be_taken_from().load()) {
-          // Group is mutually exclusive and is being used, so skip it for now
-          // Leave it to be checked next time, but continue searching
-          ++it;
-          continue;
-        }
-        // Otherwise it is safe to set and return the any_exec
-        any_exec.service = service;
-        any_exec.callback_group = group;
-        any_exec.node_base = get_node_by_group(group, weak_nodes);
-        service_handles_.erase(it);
-        return;
-      }
-      // Else, the service is no longer valid, remove it and continue
-      it = service_handles_.erase(it);
-    }
-  }
-
-  /*
-  virtual void
-  get_next_client(executor::AnyExecutable & any_exec, const WeakNodeVector & weak_nodes)
-  {
-    auto it = client_handles_.begin();
-    while (it != client_handles_.end()) {
-      auto client = get_client_by_handle(*it, weak_nodes);
-      if (client) {
-        // Find the group for this handle and see if it can be serviced
-        auto group = get_group_by_client(client, weak_nodes);
-        if (!group) {
-          // Group was not found, meaning the service is not valid...
-          // Remove it from the ready list and continue looking
-          it = client_handles_.erase(it);
-          continue;
-        }
-        if (!group->can_be_taken_from().load()) {
-          // Group is mutually exclusive and is being used, so skip it for now
-          // Leave it to be checked next time, but continue searching
-          ++it;
-          continue;
-        }
-        // Otherwise it is safe to set and return the any_exec
-        any_exec.client = client;
-        any_exec.callback_group = group;
-        any_exec.node_base = get_node_by_group(group, weak_nodes);
-        client_handles_.erase(it);
-        return;
-      }
-      // Else, the service is no longer valid, remove it and continue
-      it = client_handles_.erase(it);
-    }
-  }
-  */
-
-  virtual void
   get_next_waitable(executor::AnyExecutable & any_exec, const WeakNodeVector & weak_nodes)
   {
     auto it = waitable_handles_.begin();
@@ -425,7 +312,7 @@ public:
 
   size_t number_of_ready_services() const
   {
-    size_t number_of_services = service_handles_.size();
+    size_t number_of_services = 0u;
     for (auto waitable : waitable_handles_) {
       number_of_services += waitable->get_number_of_ready_services();
     }
@@ -434,7 +321,7 @@ public:
 
   size_t number_of_ready_clients() const
   {
-    size_t number_of_clients = 0u;  // client_handles_.size();
+    size_t number_of_clients = 0u;
     for (auto waitable : waitable_handles_) {
       number_of_clients += waitable->get_number_of_ready_clients();
     }

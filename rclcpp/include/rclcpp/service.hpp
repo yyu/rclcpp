@@ -30,6 +30,7 @@
 #include "rclcpp/type_support_decl.hpp"
 #include "rclcpp/expand_topic_or_service_name.hpp"
 #include "rclcpp/visibility_control.hpp"
+#include "rclcpp/waitable.hpp"
 #include "rclcpp/logging.hpp"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
@@ -37,7 +38,7 @@
 namespace rclcpp
 {
 
-class ServiceBase
+class ServiceBase : public Waitable
 {
 public:
   RCLCPP_SMART_PTR_DEFINITIONS_NOT_COPYABLE(ServiceBase)
@@ -50,6 +51,10 @@ public:
   virtual ~ServiceBase();
 
   RCLCPP_PUBLIC
+  size_t
+  get_number_of_ready_services() override;
+
+  RCLCPP_PUBLIC
   const char *
   get_service_name();
 
@@ -60,6 +65,18 @@ public:
   RCLCPP_PUBLIC
   std::shared_ptr<const rcl_service_t>
   get_service_handle() const;
+
+  RCLCPP_PUBLIC
+  bool
+  add_to_wait_set(rcl_wait_set_t * wait_set) override;
+
+  RCLCPP_PUBLIC
+  bool
+  is_ready(rcl_wait_set_t *) override;
+
+  RCLCPP_PUBLIC
+  void
+  execute() override;
 
   virtual std::shared_ptr<void> create_request() = 0;
   virtual std::shared_ptr<rmw_request_id_t> create_request_header() = 0;
@@ -82,6 +99,8 @@ protected:
 
   std::shared_ptr<rcl_service_t> service_handle_;
   bool owns_rcl_handle_ = true;
+
+  size_t wait_set_index_;
 };
 
 template<typename ServiceT>

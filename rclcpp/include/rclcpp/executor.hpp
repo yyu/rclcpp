@@ -308,14 +308,6 @@ protected:
   execute_timer(rclcpp::TimerBase::SharedPtr timer);
 
   RCLCPP_PUBLIC
-  static void
-  execute_service(rclcpp::ServiceBase::SharedPtr service);
-
-  // RCLCPP_PUBLIC
-  // static void
-  // execute_client(rclcpp::ClientBase::SharedPtr client);
-
-  RCLCPP_PUBLIC
   void
   wait_for_work(std::chrono::nanoseconds timeout = std::chrono::nanoseconds(-1));
 

@@ -28,8 +28,8 @@
 #include "rclcpp/macros.hpp"
 #include "rclcpp/node_interfaces/node_base_interface.hpp"
 #include "rclcpp/node_interfaces/node_parameters_interface.hpp"
-#include "rclcpp/node_interfaces/node_services_interface.hpp"
 #include "rclcpp/node_interfaces/node_topics_interface.hpp"
+#include "rclcpp/node_interfaces/node_waitables_interface.hpp"
 #include "rclcpp/parameter.hpp"
 #include "rclcpp/parameter_service.hpp"
 #include "rclcpp/publisher.hpp"
@@ -50,7 +50,7 @@ public:
   NodeParameters(
     const node_interfaces::NodeBaseInterface::SharedPtr node_base,
     const node_interfaces::NodeTopicsInterface::SharedPtr node_topics,
-    const node_interfaces::NodeServicesInterface::SharedPtr node_services,
+    const node_interfaces::NodeWaitablesInterface::SharedPtr node_waitables,
     const std::vector<Parameter> & initial_parameters,
     bool use_intra_process,
     bool start_parameter_services);

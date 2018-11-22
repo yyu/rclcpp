@@ -137,9 +137,9 @@ ClientBase::execute()
     this->get_client_handle().get(),
     request_header.get(),
     response.get());
-  if (status == RCL_RET_OK) {
+  if (RCL_RET_OK == status) {
     this->handle_response(request_header, response);
-  } else if (status != RCL_RET_CLIENT_TAKE_FAILED) {
+  } else if (RCL_RET_CLIENT_TAKE_FAILED != status) {
     RCUTILS_LOG_ERROR_NAMED(
       "rclcpp",
       "take response failed for client of service '%s': %s",
