@@ -82,9 +82,11 @@ void set_use_sim_time_parameter(rclcpp::Node::SharedPtr node, rclcpp::ParameterV
   auto set_parameters_results = parameters_client->set_parameters({
     rclcpp::Parameter("use_sim_time", value)
   });
+
   for (auto & result : set_parameters_results) {
     EXPECT_TRUE(result.successful);
   }
+
   // SyncParametersClient returns when parameters have been set on the node_parameters interface,
   // but it doesn't mean the on_parameter_event subscription in TimeSource has been called.
   // Spin some to handle that subscription.

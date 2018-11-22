@@ -125,7 +125,7 @@ ClientBase::is_ready(rcl_wait_set_t * wait_set)
 {
   // TODO(jacobperron): Error handling. Check if wait set is valid
   //                    and if wait set index is out-of-bounds
-  return (wait_set->clients[this->wait_set_index_] == this->get_client_handle().get());
+  return wait_set->clients[this->wait_set_index_] == this->get_client_handle().get();
 }
 
 void

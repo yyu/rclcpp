@@ -62,9 +62,8 @@ public:
 
   RCLCPP_PUBLIC
   virtual ~ClientBase();
-  
+
   RCLCPP_PUBLIC
-  virtual
   size_t
   get_number_of_ready_clients() override;
 
@@ -85,17 +84,14 @@ public:
   service_is_ready() const;
 
   RCLCPP_PUBLIC
-  virtual
   bool
-  add_to_wait_set(rcl_wait_set_t * wait_set) override; 
+  add_to_wait_set(rcl_wait_set_t * wait_set) override;
 
   RCLCPP_PUBLIC
-  virtual
   bool
   is_ready(rcl_wait_set_t *) override;
-  
+
   RCLCPP_PUBLIC
-  virtual
   void
   execute() override;
 

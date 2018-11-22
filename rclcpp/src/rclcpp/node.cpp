@@ -67,6 +67,7 @@ Node::Node(
   node_timers_(new rclcpp::node_interfaces::NodeTimers(node_base_.get())),
   node_topics_(new rclcpp::node_interfaces::NodeTopics(node_base_.get())),
   node_services_(new rclcpp::node_interfaces::NodeServices(node_base_.get())),
+  node_waitables_(new rclcpp::node_interfaces::NodeWaitables(node_base_.get())),
   node_parameters_(new rclcpp::node_interfaces::NodeParameters(
       node_base_,
       node_topics_,
@@ -79,9 +80,9 @@ Node::Node(
       node_base_,
       node_topics_,
       node_graph_,
-      node_services_
+      node_services_,
+      node_waitables_
     )),
-  node_waitables_(new rclcpp::node_interfaces::NodeWaitables(node_base_.get())),
   use_intra_process_comms_(use_intra_process_comms)
 {
 }

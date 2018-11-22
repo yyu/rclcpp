@@ -136,13 +136,6 @@ public:
       service_handles_.end()
     );
 
-    /*
-    client_handles_.erase(
-      std::remove(client_handles_.begin(), client_handles_.end(), nullptr),
-      client_handles_.end()
-    );
-    */
-
     timer_handles_.erase(
       std::remove(timer_handles_.begin(), timer_handles_.end(), nullptr),
       timer_handles_.end()

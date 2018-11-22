@@ -29,6 +29,7 @@ AsyncParametersClient::AsyncParametersClient(
   const rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr node_topics_interface,
   const rclcpp::node_interfaces::NodeGraphInterface::SharedPtr node_graph_interface,
   const rclcpp::node_interfaces::NodeServicesInterface::SharedPtr node_services_interface,
+  const rclcpp::node_interfaces::NodeWaitablesInterface::SharedPtr node_waitables_interface,
   const std::string & remote_node_name,
   const rmw_qos_profile_t & qos_profile)
 : node_topics_interface_(node_topics_interface)
@@ -51,7 +52,7 @@ AsyncParametersClient::AsyncParametersClient(
     remote_node_name_ + "/" + parameter_service_names::get_parameters,
     options);
   auto get_parameters_base = std::dynamic_pointer_cast<ClientBase>(get_parameters_client_);
-  node_services_interface->add_client(get_parameters_base, nullptr);
+  node_waitables_interface->add_waitable(get_parameters_base, nullptr);
 
   get_parameter_types_client_ = Client<rcl_interfaces::srv::GetParameterTypes>::make_shared(
     node_base_interface.get(),
@@ -60,7 +61,7 @@ AsyncParametersClient::AsyncParametersClient(
     options);
   auto get_parameter_types_base =
     std::dynamic_pointer_cast<ClientBase>(get_parameter_types_client_);
-  node_services_interface->add_client(get_parameter_types_base, nullptr);
+  node_waitables_interface->add_waitable(get_parameter_types_base, nullptr);
 
   set_parameters_client_ = Client<rcl_interfaces::srv::SetParameters>::make_shared(
     node_base_interface.get(),
@@ -68,7 +69,7 @@ AsyncParametersClient::AsyncParametersClient(
     remote_node_name_ + "/" + parameter_service_names::set_parameters,
     options);
   auto set_parameters_base = std::dynamic_pointer_cast<ClientBase>(set_parameters_client_);
-  node_services_interface->add_client(set_parameters_base, nullptr);
+  node_waitables_interface->add_waitable(set_parameters_base, nullptr);
 
   set_parameters_atomically_client_ =
     Client<rcl_interfaces::srv::SetParametersAtomically>::make_shared(node_base_interface.get(),
@@ -77,7 +78,7 @@ AsyncParametersClient::AsyncParametersClient(
       options);
   auto set_parameters_atomically_base = std::dynamic_pointer_cast<ClientBase>(
     set_parameters_atomically_client_);
-  node_services_interface->add_client(set_parameters_atomically_base, nullptr);
+  node_waitables_interface->add_waitable(set_parameters_atomically_base, nullptr);
 
   list_parameters_client_ = Client<rcl_interfaces::srv::ListParameters>::make_shared(
     node_base_interface.get(),
@@ -85,7 +86,7 @@ AsyncParametersClient::AsyncParametersClient(
     remote_node_name_ + "/" + parameter_service_names::list_parameters,
     options);
   auto list_parameters_base = std::dynamic_pointer_cast<ClientBase>(list_parameters_client_);
-  node_services_interface->add_client(list_parameters_base, nullptr);
+  node_waitables_interface->add_waitable(list_parameters_base, nullptr);
 
   describe_parameters_client_ = Client<rcl_interfaces::srv::DescribeParameters>::make_shared(
     node_base_interface.get(),
@@ -94,7 +95,7 @@ AsyncParametersClient::AsyncParametersClient(
     options);
   auto describe_parameters_base =
     std::dynamic_pointer_cast<ClientBase>(describe_parameters_client_);
-  node_services_interface->add_client(describe_parameters_base, nullptr);
+  node_waitables_interface->add_waitable(describe_parameters_base, nullptr);
 }
 
 AsyncParametersClient::AsyncParametersClient(
@@ -106,6 +107,7 @@ AsyncParametersClient::AsyncParametersClient(
     node->get_node_topics_interface(),
     node->get_node_graph_interface(),
     node->get_node_services_interface(),
+    node->get_node_waitables_interface(),
     remote_node_name,
     qos_profile)
 {}
@@ -119,6 +121,7 @@ AsyncParametersClient::AsyncParametersClient(
     node->get_node_topics_interface(),
     node->get_node_graph_interface(),
     node->get_node_services_interface(),
+    node->get_node_waitables_interface(),
     remote_node_name,
     qos_profile)
 {}
