@@ -64,12 +64,14 @@ public:
     rcl_subscription_options_t & subscription_options,
     bool use_intra_process) = 0;
 
+  /*
   RCLCPP_PUBLIC
   virtual
   void
   add_subscription(
     rclcpp::SubscriptionBase::SharedPtr subscription,
     rclcpp::callback_group::CallbackGroup::SharedPtr callback_group) = 0;
+  */
 };
 
 }  // namespace node_interfaces

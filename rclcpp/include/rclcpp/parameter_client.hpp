@@ -33,6 +33,9 @@
 #include "rclcpp/create_subscription.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp/node.hpp"
+#include "rclcpp/node_interfaces/node_topics_interface.hpp"
+#include "rclcpp/node_interfaces/node_graph_interface.hpp"
+#include "rclcpp/node_interfaces/node_waitables_interface.hpp"
 #include "rclcpp/parameter.hpp"
 #include "rclcpp/type_support_decl.hpp"
 #include "rclcpp/visibility_control.hpp"
@@ -124,6 +127,7 @@ public:
     return rclcpp::create_subscription<
       ParameterEvent, CallbackT, Alloc, ParameterEvent, SubscriptionT>(
       this->node_topics_interface_.get(),
+      this->node_waitables_interface_.get(),
       "parameter_events",
       std::forward<CallbackT>(callback),
       rmw_qos_profile_default,
@@ -155,6 +159,7 @@ protected:
 
 private:
   const rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr node_topics_interface_;
+  const rclcpp::node_interfaces::NodeWaitablesInterface::SharedPtr node_waitables_interface_;
   rclcpp::Client<rcl_interfaces::srv::GetParameters>::SharedPtr get_parameters_client_;
   rclcpp::Client<rcl_interfaces::srv::GetParameterTypes>::SharedPtr
     get_parameter_types_client_;

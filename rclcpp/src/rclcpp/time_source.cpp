@@ -85,6 +85,7 @@ void TimeSource::detachNode()
   node_base_.reset();
   node_topics_.reset();
   node_graph_.reset();
+  node_waitables_.reset();
   disable_ros_time();
 }
 
@@ -175,6 +176,7 @@ void TimeSource::create_clock_sub()
     MessageT, decltype(cb), Alloc, MessageT, SubscriptionT
     >(
     node_topics_.get(),
+    node_waitables_.get(),
     topic_name,
     std::move(cb),
     rmw_qos_profile_default,

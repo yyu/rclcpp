@@ -31,7 +31,8 @@ AsyncParametersClient::AsyncParametersClient(
   const rclcpp::node_interfaces::NodeWaitablesInterface::SharedPtr node_waitables_interface,
   const std::string & remote_node_name,
   const rmw_qos_profile_t & qos_profile)
-: node_topics_interface_(node_topics_interface)
+: node_topics_interface_(node_topics_interface),
+  node_waitables_interface_(node_waitables_interface)
 {
   if (remote_node_name != "") {
     remote_node_name_ = remote_node_name;

@@ -82,6 +82,12 @@ SubscriptionBase::~SubscriptionBase()
 {
 }
 
+size_t
+SubscriptionBase::get_number_of_ready_subscriptions()
+{
+  return 1u;
+}
+
 const char *
 SubscriptionBase::get_topic_name() const
 {
@@ -92,6 +98,125 @@ std::shared_ptr<rcl_subscription_t>
 SubscriptionBase::get_subscription_handle()
 {
   return subscription_handle_;
+}
+
+bool
+SubscriptionBase::add_to_wait_set(rcl_wait_set_t * wait_set)
+{
+  bool added = false;
+  if (this->get_subscription_handle().get()) {
+    rcl_ret_t ret = rcl_wait_set_add_subscription(
+      wait_set, this->get_subscription_handle().get(), &this->wait_set_index_);
+
+    if (RCL_RET_OK == ret) {
+      added = true;
+    } else {
+      RCUTILS_LOG_ERROR_NAMED(
+        "rclcpp",
+        "Couldn't add subscription to wait set: %s", rcl_get_error_string().str);
+    }
+  }
+  if (this->get_intra_process_subscription_handle()) {
+    rcl_ret_t ret = rcl_wait_set_add_subscription(
+      wait_set,
+      this->get_intra_process_subscription_handle().get(),
+      &this->wait_set_intra_process_index_);
+
+    if (RCL_RET_OK == ret) {
+      added = true;
+    } else {
+      RCUTILS_LOG_ERROR_NAMED(
+        "rclcpp",
+        "Couldn't add subscription to wait set: %s", rcl_get_error_string().str);
+    }
+  }
+  return added;
+}
+
+bool
+SubscriptionBase::is_ready(rcl_wait_set_t * wait_set)
+{
+  this->subscription_ready_ =
+    wait_set->subscriptions[this->wait_set_index_] == this->get_subscription_handle().get();
+  this->intra_process_subscription_ready_ =
+    wait_set->subscriptions[this->wait_set_intra_process_index_] ==
+    this->get_intra_process_subscription_handle().get();
+  return this->subscription_ready_ || this->intra_process_subscription_ready_;
+}
+
+void
+SubscriptionBase::execute_subscription()
+{
+  rmw_message_info_t message_info;
+  message_info.from_intra_process = false;
+
+  if (this->is_serialized()) {
+    auto serialized_msg = this->create_serialized_message();
+    auto ret = rcl_take_serialized_message(
+      this->get_subscription_handle().get(),
+      serialized_msg.get(), &message_info);
+    if (RCL_RET_OK == ret) {
+      auto void_serialized_msg = std::static_pointer_cast<void>(serialized_msg);
+      this->handle_message(void_serialized_msg, message_info);
+    } else if (RCL_RET_SUBSCRIPTION_TAKE_FAILED != ret) {
+      RCUTILS_LOG_ERROR_NAMED(
+        "rclcpp",
+        "take_serialized failed for subscription on topic '%s': %s",
+        this->get_topic_name(), rcl_get_error_string().str);
+      rcl_reset_error();
+    }
+    this->return_serialized_message(serialized_msg);
+  } else {
+    std::shared_ptr<void> message = this->create_message();
+    auto ret = rcl_take(
+      this->get_subscription_handle().get(),
+      message.get(), &message_info);
+    if (RCL_RET_OK == ret) {
+      this->handle_message(message, message_info);
+    } else if (RCL_RET_SUBSCRIPTION_TAKE_FAILED != ret) {
+      RCUTILS_LOG_ERROR_NAMED(
+        "rclcpp",
+        "could not deserialize serialized message on topic '%s': %s",
+        this->get_topic_name(), rcl_get_error_string().str);
+      rcl_reset_error();
+    }
+    this->return_message(message);
+  }
+}
+
+void
+SubscriptionBase::execute_intra_process_subscription()
+{
+  rcl_interfaces::msg::IntraProcessMessage ipm;
+  rmw_message_info_t message_info;
+  rcl_ret_t status = rcl_take(
+    this->get_intra_process_subscription_handle().get(),
+    &ipm,
+    &message_info);
+
+  if (status == RCL_RET_OK) {
+    message_info.from_intra_process = true;
+    this->handle_intra_process_message(ipm, message_info);
+  } else if (status != RCL_RET_SUBSCRIPTION_TAKE_FAILED) {
+    RCUTILS_LOG_ERROR_NAMED(
+      "rclcpp",
+      "take failed for intra process subscription on topic '%s': %s",
+      this->get_topic_name(), rcl_get_error_string().str);
+    rcl_reset_error();
+  }
+}
+
+void
+SubscriptionBase::execute()
+{
+  if (this->subscription_ready_) {
+    this->execute_subscription();
+  }
+  // TODO(jacobperron): Process both intra process message and another sequentially?
+  //                    Or should this be 'else if'?
+  else if (this->intra_process_subscription_ready_) {
+    this->execute_intra_process_subscription();
+  }
 }
 
 const std::shared_ptr<rcl_subscription_t>

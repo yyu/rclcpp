@@ -37,6 +37,7 @@
 #include "rclcpp/subscription_traits.hpp"
 #include "rclcpp/type_support_decl.hpp"
 #include "rclcpp/visibility_control.hpp"
+#include "rclcpp/waitable.hpp"
 
 namespace rclcpp
 {
@@ -48,7 +49,7 @@ class NodeTopicsInterface;
 
 /// Virtual base class for subscriptions. This pattern allows us to iterate over different template
 /// specializations of Subscription, among other things.
-class SubscriptionBase
+class SubscriptionBase : public Waitable
 {
 public:
   RCLCPP_SMART_PTR_DEFINITIONS_NOT_COPYABLE(SubscriptionBase)
@@ -73,6 +74,10 @@ public:
   RCLCPP_PUBLIC
   virtual ~SubscriptionBase();
 
+  RCLCPP_PUBLIC
+  size_t
+  get_number_of_ready_subscriptions() override;
+
   /// Get the topic that this subscription is subscribed on.
   RCLCPP_PUBLIC
   const char *
@@ -89,6 +94,18 @@ public:
   RCLCPP_PUBLIC
   virtual const std::shared_ptr<rcl_subscription_t>
   get_intra_process_subscription_handle() const;
+
+  RCLCPP_PUBLIC
+  bool
+  add_to_wait_set(rcl_wait_set_t * wait_set) override;
+
+  RCLCPP_PUBLIC
+  bool
+  is_ready(rcl_wait_set_t *) override;
+
+  RCLCPP_PUBLIC
+  void
+  execute() override;
 
   /// Borrow a new message.
   /** \return Shared pointer to the fresh message. */
@@ -130,9 +147,20 @@ public:
   is_serialized() const;
 
 protected:
+  void
+  execute_subscription();
+
+  void
+  execute_intra_process_subscription();
+
   std::shared_ptr<rcl_subscription_t> intra_process_subscription_handle_;
   std::shared_ptr<rcl_subscription_t> subscription_handle_;
   std::shared_ptr<rcl_node_t> node_handle_;
+
+  size_t wait_set_index_;
+  size_t wait_set_intra_process_index_;
+  bool subscription_ready_;
+  bool intra_process_subscription_ready_;
 
 private:
   RCLCPP_DISABLE_COPY(SubscriptionBase)

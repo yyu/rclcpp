@@ -295,16 +295,6 @@ protected:
 
   RCLCPP_PUBLIC
   static void
-  execute_subscription(
-    rclcpp::SubscriptionBase::SharedPtr subscription);
-
-  RCLCPP_PUBLIC
-  static void
-  execute_intra_process_subscription(
-    rclcpp::SubscriptionBase::SharedPtr subscription);
-
-  RCLCPP_PUBLIC
-  static void
   execute_timer(rclcpp::TimerBase::SharedPtr timer);
 
   RCLCPP_PUBLIC

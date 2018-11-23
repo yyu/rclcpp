@@ -102,6 +102,7 @@ NodeTopics::create_subscription(
   return subscription;
 }
 
+/*
 void
 NodeTopics::add_subscription(
   rclcpp::SubscriptionBase::SharedPtr subscription,
@@ -129,3 +130,4 @@ NodeTopics::add_subscription(
     }
   }
 }
+*/

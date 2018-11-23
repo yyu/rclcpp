@@ -63,10 +63,10 @@ public:
 
   virtual void remove_guard_condition(const rcl_guard_condition_t * guard_condition) = 0;
 
-  virtual void
-  get_next_subscription(
-    rclcpp::executor::AnyExecutable & any_exec,
-    const WeakNodeVector & weak_nodes) = 0;
+  // virtual void
+  // get_next_subscription(
+  //   rclcpp::executor::AnyExecutable & any_exec,
+  //   const WeakNodeVector & weak_nodes) = 0;
 
   virtual void
   get_next_waitable(
@@ -76,20 +76,20 @@ public:
   virtual rcl_allocator_t
   get_allocator() = 0;
 
-  static rclcpp::SubscriptionBase::SharedPtr
-  get_subscription_by_handle(
-    std::shared_ptr<const rcl_subscription_t> subscriber_handle,
-    const WeakNodeVector & weak_nodes);
+  // static rclcpp::SubscriptionBase::SharedPtr
+  // get_subscription_by_handle(
+  //   std::shared_ptr<const rcl_subscription_t> subscriber_handle,
+  //   const WeakNodeVector & weak_nodes);
 
   static rclcpp::node_interfaces::NodeBaseInterface::SharedPtr
   get_node_by_group(
     rclcpp::callback_group::CallbackGroup::SharedPtr group,
     const WeakNodeVector & weak_nodes);
 
-  static rclcpp::callback_group::CallbackGroup::SharedPtr
-  get_group_by_subscription(
-    rclcpp::SubscriptionBase::SharedPtr subscription,
-    const WeakNodeVector & weak_nodes);
+  // static rclcpp::callback_group::CallbackGroup::SharedPtr
+  // get_group_by_subscription(
+  //   rclcpp::SubscriptionBase::SharedPtr subscription,
+  //   const WeakNodeVector & weak_nodes);
 
   static rclcpp::callback_group::CallbackGroup::SharedPtr
   get_group_by_waitable(

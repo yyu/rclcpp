@@ -83,21 +83,12 @@ public:
 
   void clear_handles()
   {
-    subscription_handles_.clear();
     timer_handles_.clear();
     waitable_handles_.clear();
   }
 
   virtual void remove_null_handles(rcl_wait_set_t * wait_set)
   {
-    // Important to use subscription_handles_.size() instead of wait set's size since
-    // there may be more subscriptions in the wait set due to Waitables added to the end.
-    // The same logic applies for other entities.
-    for (size_t i = 0; i < subscription_handles_.size(); ++i) {
-      if (!wait_set->subscriptions[i]) {
-        subscription_handles_[i].reset();
-      }
-    }
     for (size_t i = 0; i < timer_handles_.size(); ++i) {
       if (!wait_set->timers[i]) {
         timer_handles_[i].reset();
@@ -108,11 +99,6 @@ public:
         waitable_handles_[i].reset();
       }
     }
-
-    subscription_handles_.erase(
-      std::remove(subscription_handles_.begin(), subscription_handles_.end(), nullptr),
-      subscription_handles_.end()
-    );
 
     timer_handles_.erase(
       std::remove(timer_handles_.begin(), timer_handles_.end(), nullptr),
@@ -142,11 +128,7 @@ public:
         for (auto & weak_subscription : group->get_subscription_ptrs()) {
           auto subscription = weak_subscription.lock();
           if (subscription) {
-            subscription_handles_.push_back(subscription->get_subscription_handle());
-            if (subscription->get_intra_process_subscription_handle()) {
-              subscription_handles_.push_back(
-                subscription->get_intra_process_subscription_handle());
-            }
+            waitable_handles_.push_back(subscription);
           }
         }
         for (auto & weak_service : group->get_service_ptrs()) {
@@ -180,15 +162,6 @@ public:
 
   bool add_handles_to_wait_set(rcl_wait_set_t * wait_set)
   {
-    for (auto subscription : subscription_handles_) {
-      if (rcl_wait_set_add_subscription(wait_set, subscription.get(), NULL) != RCL_RET_OK) {
-        RCUTILS_LOG_ERROR_NAMED(
-          "rclcpp",
-          "Couldn't add subscription to wait set: %s", rcl_get_error_string().str);
-        return false;
-      }
-    }
-
     for (auto timer : timer_handles_) {
       if (rcl_wait_set_add_timer(wait_set, timer.get(), NULL) != RCL_RET_OK) {
         RCUTILS_LOG_ERROR_NAMED(
@@ -217,50 +190,6 @@ public:
       }
     }
     return true;
-  }
-
-  virtual void
-  get_next_subscription(
-    executor::AnyExecutable & any_exec,
-    const WeakNodeVector & weak_nodes)
-  {
-    auto it = subscription_handles_.begin();
-    while (it != subscription_handles_.end()) {
-      auto subscription = get_subscription_by_handle(*it, weak_nodes);
-      if (subscription) {
-        // Figure out if this is for intra-process or not.
-        bool is_intra_process = false;
-        if (subscription->get_intra_process_subscription_handle()) {
-          is_intra_process = subscription->get_intra_process_subscription_handle() == *it;
-        }
-        // Find the group for this handle and see if it can be serviced
-        auto group = get_group_by_subscription(subscription, weak_nodes);
-        if (!group) {
-          // Group was not found, meaning the subscription is not valid...
-          // Remove it from the ready list and continue looking
-          it = subscription_handles_.erase(it);
-          continue;
-        }
-        if (!group->can_be_taken_from().load()) {
-          // Group is mutually exclusive and is being used, so skip it for now
-          // Leave it to be checked next time, but continue searching
-          ++it;
-          continue;
-        }
-        // Otherwise it is safe to set and return the any_exec
-        if (is_intra_process) {
-          any_exec.subscription_intra_process = subscription;
-        } else {
-          any_exec.subscription = subscription;
-        }
-        any_exec.callback_group = group;
-        any_exec.node_base = get_node_by_group(group, weak_nodes);
-        subscription_handles_.erase(it);
-        return;
-      }
-      // Else, the subscription is no longer valid, remove it and continue
-      it = subscription_handles_.erase(it);
-    }
   }
 
   virtual void
@@ -303,7 +232,7 @@ public:
 
   size_t number_of_ready_subscriptions() const
   {
-    size_t number_of_subscriptions = subscription_handles_.size();
+    size_t number_of_subscriptions = 0u;
     for (auto waitable : waitable_handles_) {
       number_of_subscriptions += waitable->get_number_of_ready_subscriptions();
     }
@@ -358,9 +287,6 @@ private:
 
   VectorRebind<const rcl_guard_condition_t *> guard_conditions_;
 
-  VectorRebind<std::shared_ptr<const rcl_subscription_t>> subscription_handles_;
-  VectorRebind<std::shared_ptr<const rcl_service_t>> service_handles_;
-  // VectorRebind<std::shared_ptr<const rcl_client_t>> client_handles_;
   VectorRebind<std::shared_ptr<const rcl_timer_t>> timer_handles_;
   VectorRebind<std::shared_ptr<Waitable>> waitable_handles_;
 

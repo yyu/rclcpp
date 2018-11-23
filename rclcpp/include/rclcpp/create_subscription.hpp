@@ -20,6 +20,7 @@
 #include <utility>
 
 #include "rclcpp/node_interfaces/node_topics_interface.hpp"
+#include "rclcpp/node_interfaces/node_waitables_interface.hpp"
 #include "rclcpp/subscription_factory.hpp"
 #include "rmw/qos_profiles.h"
 
@@ -35,6 +36,7 @@ template<
 typename std::shared_ptr<SubscriptionT>
 create_subscription(
   rclcpp::node_interfaces::NodeTopicsInterface * node_topics,
+  rclcpp::node_interfaces::NodeWaitablesInterface * node_waitables,
   const std::string & topic_name,
   CallbackT && callback,
   const rmw_qos_profile_t & qos_profile,
@@ -59,7 +61,7 @@ create_subscription(
     factory,
     subscription_options,
     use_intra_process_comms);
-  node_topics->add_subscription(sub, group);
+  node_waitables->add_waitable(sub, group);
   return std::dynamic_pointer_cast<SubscriptionT>(sub);
 }
 

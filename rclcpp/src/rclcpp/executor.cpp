@@ -269,12 +269,6 @@ Executor::execute_any_executable(AnyExecutable & any_exec)
   if (any_exec.timer) {
     execute_timer(any_exec.timer);
   }
-  if (any_exec.subscription) {
-    execute_subscription(any_exec.subscription);
-  }
-  if (any_exec.subscription_intra_process) {
-    execute_intra_process_subscription(any_exec.subscription_intra_process);
-  }
   if (any_exec.waitable) {
     any_exec.waitable->execute();
   }
@@ -284,70 +278,6 @@ Executor::execute_any_executable(AnyExecutable & any_exec)
   // was previously blocked is now available.
   if (rcl_trigger_guard_condition(&interrupt_guard_condition_) != RCL_RET_OK) {
     throw std::runtime_error(rcl_get_error_string().str);
-  }
-}
-
-void
-Executor::execute_subscription(
-  rclcpp::SubscriptionBase::SharedPtr subscription)
-{
-  rmw_message_info_t message_info;
-  message_info.from_intra_process = false;
-
-  if (subscription->is_serialized()) {
-    auto serialized_msg = subscription->create_serialized_message();
-    auto ret = rcl_take_serialized_message(
-      subscription->get_subscription_handle().get(),
-      serialized_msg.get(), &message_info);
-    if (RCL_RET_OK == ret) {
-      auto void_serialized_msg = std::static_pointer_cast<void>(serialized_msg);
-      subscription->handle_message(void_serialized_msg, message_info);
-    } else if (RCL_RET_SUBSCRIPTION_TAKE_FAILED != ret) {
-      RCUTILS_LOG_ERROR_NAMED(
-        "rclcpp",
-        "take_serialized failed for subscription on topic '%s': %s",
-        subscription->get_topic_name(), rcl_get_error_string().str);
-      rcl_reset_error();
-    }
-    subscription->return_serialized_message(serialized_msg);
-  } else {
-    std::shared_ptr<void> message = subscription->create_message();
-    auto ret = rcl_take(
-      subscription->get_subscription_handle().get(),
-      message.get(), &message_info);
-    if (RCL_RET_OK == ret) {
-      subscription->handle_message(message, message_info);
-    } else if (RCL_RET_SUBSCRIPTION_TAKE_FAILED != ret) {
-      RCUTILS_LOG_ERROR_NAMED(
-        "rclcpp",
-        "could not deserialize serialized message on topic '%s': %s",
-        subscription->get_topic_name(), rcl_get_error_string().str);
-      rcl_reset_error();
-    }
-    subscription->return_message(message);
-  }
-}
-
-void
-Executor::execute_intra_process_subscription(
-  rclcpp::SubscriptionBase::SharedPtr subscription)
-{
-  rcl_interfaces::msg::IntraProcessMessage ipm;
-  rmw_message_info_t message_info;
-  rcl_ret_t status = rcl_take(
-    subscription->get_intra_process_subscription_handle().get(),
-    &ipm,
-    &message_info);
-
-  if (status == RCL_RET_OK) {
-    message_info.from_intra_process = true;
-    subscription->handle_intra_process_message(ipm, message_info);
-  } else if (status != RCL_RET_SUBSCRIPTION_TAKE_FAILED) {
-    RCUTILS_LOG_ERROR_NAMED(
-      "rclcpp",
-      "take failed for intra process subscription on topic '%s': %s",
-      subscription->get_topic_name(), rcl_get_error_string().str);
-    rcl_reset_error();
   }
 }
 
@@ -488,11 +418,6 @@ Executor::get_next_ready_executable(AnyExecutable & any_executable)
   // Check the timers to see if there are any that are ready, if so return
   get_next_timer(any_executable);
   if (any_executable.timer) {
-    return true;
-  }
-  // Check the subscriptions to see if there are any that are ready
-  memory_strategy_->get_next_subscription(any_executable, weak_nodes_);
-  if (any_executable.subscription || any_executable.subscription_intra_process) {
     return true;
   }
   // Check the waitables to see if there are any that are ready

@@ -69,12 +69,14 @@ public:
     rcl_subscription_options_t & subscription_options,
     bool use_intra_process);
 
+  /*
   RCLCPP_PUBLIC
   virtual
   void
   add_subscription(
     rclcpp::SubscriptionBase::SharedPtr subscription,
     rclcpp::callback_group::CallbackGroup::SharedPtr callback_group);
+  */
 
 private:
   RCLCPP_DISABLE_COPY(NodeTopics)

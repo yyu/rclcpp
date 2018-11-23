@@ -17,6 +17,7 @@
 
 using rclcpp::memory_strategy::MemoryStrategy;
 
+/*
 rclcpp::SubscriptionBase::SharedPtr
 MemoryStrategy::get_subscription_by_handle(
   std::shared_ptr<const rcl_subscription_t> subscriber_handle,
@@ -47,7 +48,7 @@ MemoryStrategy::get_subscription_by_handle(
   }
   return nullptr;
 }
-
+*/
 rclcpp::node_interfaces::NodeBaseInterface::SharedPtr
 MemoryStrategy::get_node_by_group(
   rclcpp::callback_group::CallbackGroup::SharedPtr group,
@@ -71,6 +72,7 @@ MemoryStrategy::get_node_by_group(
   return nullptr;
 }
 
+/*
 rclcpp::callback_group::CallbackGroup::SharedPtr
 MemoryStrategy::get_group_by_subscription(
   rclcpp::SubscriptionBase::SharedPtr subscription,
@@ -96,6 +98,7 @@ MemoryStrategy::get_group_by_subscription(
   }
   return nullptr;
 }
+*/
 
 rclcpp::callback_group::CallbackGroup::SharedPtr
 MemoryStrategy::get_group_by_waitable(

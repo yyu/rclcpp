@@ -112,6 +112,7 @@ Node::create_subscription(
 
   return rclcpp::create_subscription<MessageT, CallbackT, Alloc, CallbackMessageT, SubscriptionT>(
     this->node_topics_.get(),
+    this->node_waitables_.get(),
     topic_name,
     std::forward<CallbackT>(callback),
     qos_profile,
