@@ -202,12 +202,13 @@ public:
        promise{std::move(promise)},
        callback, ignore_result] (std::shared_ptr<void> response) mutable
       {
-        using GoalResponse = typename ACTION::GoalService::Response;
+        using GoalResponse = typename ACTION::GoalRequestService::Response;
         typename GoalResponse::SharedPtr goal_response =
           std::static_pointer_cast<GoalResponse>(response);
         if (!goal_response->accepted) {
-          promise->set_exception(std::make_exception_ptr(
-            exceptions::RejectedGoalError(goal_request->goal)));
+          // promise.set_exception(std::make_exception_ptr(
+          //   exceptions::RejectedGoalError(goal_request->goal)));
+          exceptions::RejectedGoalError<GoalRequest>(*goal_request);
           return;
         }
         GoalInfo goal_info;
@@ -219,13 +220,13 @@ public:
           try {
             this->make_result_aware(goal_handle);
           } catch (...) {
-            promise->set_exception(std::current_exception());
+            promise.set_exception(std::current_exception());
             return;
           }
         }
         std::lock_guard<std::mutex> guard(goal_handles_mutex_);
         goal_handles_[goal_handle->get_goal_id()] = goal_handle;
-        promise->set_value(goal_handle);
+        promise.set_value(goal_handle);
       });
     return future;
   }
