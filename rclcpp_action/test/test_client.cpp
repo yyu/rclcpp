@@ -31,12 +31,47 @@ protected:
   {
     rclcpp::init(0, nullptr);
   }
+
+  void SetUp()
+  {
+    node = std::make_shared<rclcpp::Node>("action_client_node", "/rclcpp_action/test/client");
+    action_name = "fibonacci";
+  }
+
+  void TearDown()
+  {
+    node.reset();
+  }
+
+  rclcpp::Node::SharedPtr node;
+  std::string action_name;
 };
 
 TEST_F(TestClient, construction_and_destruction)
 {
-  auto node = std::make_shared<rclcpp::Node>("my_node", "/rclcpp_action/test/client");
-
-  auto ac = rclcpp_action::create_client<test_msgs::action::Fibonacci>(node.get(), "fibonacci");
+  auto ac = rclcpp_action::create_client<test_msgs::action::Fibonacci>(node.get(), action_name);
   (void)ac;
 }
+
+TEST_F(TestClient, async_send_goal_without_feedback)
+{
+  auto ac = rclcpp_action::create_client<test_msgs::action::Fibonacci>(node.get(), action_name);
+
+  test_msgs::action::Fibonacci::Goal goal;
+  goal.order = 5;
+
+  ASSERT_NO_THROW(ac->async_send_goal(goal, nullptr, true));
+}
+
+TEST_F(TestClient, async_send_goal_with_feedback)
+{
+  // auto ac = rclcpp_action::create_client<test_msgs::action::Fibonacci>(node.get(), action_name);
+
+  // test_msgs::action::Fibonacci::Goal goal;
+  // auto feedback_callback = [] (
+  //   rclcpp_action::ClientGoalHandle<test_msgs::action::Fibonacci>::SharedPtr,
+  //   const test_msgs::action::Fibonacci::Feedback &) {};
+
+  // ASSERT_NO_THROW(ac->async_send_goal(goal, feedback_callback, false));
+}
+
