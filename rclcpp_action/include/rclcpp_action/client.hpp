@@ -65,7 +65,7 @@ class Client : public ClientBase
 public:
   RCLCPP_SMART_PTR_DEFINITIONS_NOT_COPYABLE(Client)
 
-  using FeedbackCallback = std::function<void (
+  using FeedbackCallback = std::function<void(
         std::shared_ptr<ClientGoalHandle<ACTION>>, const typename ACTION::Feedback)>;
 
   Client(

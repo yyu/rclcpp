@@ -63,8 +63,8 @@ class Server : public ServerBase
 public:
   RCLCPP_SMART_PTR_DEFINITIONS_NOT_COPYABLE(Server)
 
-  using GoalCallback = std::function<void (rcl_action_goal_info_t &, typename ACTION::Goal *)>;
-  using CancelCallback = std::function<void (std::shared_ptr<ServerGoalHandle<ACTION>>)>;
+  using GoalCallback = std::function<void(rcl_action_goal_info_t &, typename ACTION::Goal *)>;
+  using CancelCallback = std::function<void(std::shared_ptr<ServerGoalHandle<ACTION>>)>;
 
   // TODO(sloretz) accept clock instance
   Server(
