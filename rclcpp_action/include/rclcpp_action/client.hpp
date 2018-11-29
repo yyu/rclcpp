@@ -199,7 +199,7 @@ public:
     this->send_goal_request(
       std::static_pointer_cast<void>(goal_request),
       [this, goal_request,
-       promise{std::move(promise)},
+       &promise,
        callback, ignore_result] (std::shared_ptr<void> response) mutable
       {
         using GoalResponse = typename ACTION::GoalRequestService::Response;
@@ -208,7 +208,7 @@ public:
         if (!goal_response->accepted) {
           // promise.set_exception(std::make_exception_ptr(
           //   exceptions::RejectedGoalError(goal_request->goal)));
-          exceptions::RejectedGoalError<GoalRequest>(*goal_request);
+          exceptions::RejectedGoalError();
           return;
         }
         GoalInfo goal_info;
@@ -395,7 +395,7 @@ private:
     using GoalResultRequest = typename ACTION::GoalResultService::Request;
     auto goal_result_request = std::make_shared<GoalResultRequest>();
     // goal_result_request.goal_id = goal_handle->get_goal_id();
-    goal_result_request.uuid = goal_handle->get_goal_id();
+    goal_result_request->uuid = goal_handle->get_goal_id();
     this->send_result_request(
       std::static_pointer_cast<void>(goal_result_request),
       [goal_handle] (std::shared_ptr<void> response)
@@ -403,7 +403,7 @@ private:
         using GoalResultResponse = typename ACTION::GoalResultService::Response;
         typename GoalResultResponse::SharedPtr goal_result_response =
           std::static_pointer_cast<GoalResultResponse>(response);
-        goal_handle->set_result(goal_result_response);
+        goal_handle->set_result(*goal_result_response);
       });
     goal_handle->set_result_awareness(true);
   }

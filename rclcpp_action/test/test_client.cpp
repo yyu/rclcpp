@@ -59,6 +59,7 @@ TEST_F(TestClient, async_send_goal_without_feedback)
 
   test_msgs::action::Fibonacci::Goal goal;
   goal.order = 5;
+  goal.uuid = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   ASSERT_NO_THROW(ac->async_send_goal(goal, nullptr, true));
 }

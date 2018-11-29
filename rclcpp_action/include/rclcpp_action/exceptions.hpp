@@ -22,11 +22,10 @@ namespace rclcpp_action
 namespace exceptions
 {
 
-template<typename T>
 class RejectedGoalError : public std::runtime_error
 {
 public:
-  RejectedGoalError(T goal)
+  RejectedGoalError()
   : std::runtime_error("")
   {
   }
