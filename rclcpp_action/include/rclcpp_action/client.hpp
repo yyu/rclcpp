@@ -215,7 +215,7 @@ public:
         // goal_info.goal_id = goal_request->goal_id;
         goal_info.uuid = goal_request->uuid;
         goal_info.stamp = goal_response->stamp;
-        auto goal_handle = std::make_shared<GoalHandle>(goal_info, callback);
+        auto goal_handle = this->create_handle(goal_info, callback);
         if (!ignore_result) {
           try {
             this->make_result_aware(goal_handle);
@@ -422,6 +422,12 @@ private:
         promise.set_value(cancel_response);
       });
     return future;
+  }
+
+  std::shared_ptr<GoalHandle>
+  create_handle(const GoalInfo & info, FeedbackCallback callback)
+  {
+    return std::make_shared<GoalHandle>(info, callback);
   }
 
   std::map<GoalID, typename GoalHandle::SharedPtr> goal_handles_;
