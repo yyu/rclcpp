@@ -189,7 +189,7 @@ public:
     const Goal & goal, FeedbackCallback callback = nullptr, bool ignore_result = false)
   {
     // Put promise in the heap to move it around.
-    auto promise = std::make_shared<std::promise<typename GoalHandle::SharedPtr>>;
+    auto promise = std::make_shared<std::promise<typename GoalHandle::SharedPtr>>();
     std::shared_future<typename GoalHandle::SharedPtr> future(promise->get_future());
     using GoalRequest = typename ACTION::GoalRequestService::Request;
     // auto goal_request = std::make_shared<GoalRequest>();
