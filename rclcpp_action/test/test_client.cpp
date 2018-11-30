@@ -107,3 +107,25 @@ TEST_F(TestClient, async_get_result)
   ASSERT_EQ(result.sequence[4], 5); // 1 1 2 3 5
 }
 
+TEST_F(TestClient, cancel_goal)
+{
+  // TODO(sservulo): add action server to test comm
+  auto ac = rclcpp_action::create_client<test_msgs::action::Fibonacci>(node.get(), action_name);
+
+  test_msgs::action::Fibonacci::Goal goal;
+  goal.order = 5;
+  goal.uuid = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3};
+
+  auto handle_future = ac->async_send_goal(goal, nullptr, true);
+  handle_future.wait();
+
+  // retrieve handle from future and ask for result future
+  rclcpp_action::ClientGoalHandle<test_msgs::action::Fibonacci>::SharedPtr handle =
+    handle_future.get();
+
+  auto cancel_future = ac->async_cancel_goal(handle);
+  cancel_future.wait();
+
+  ASSERT_TRUE(cancel_future.get());
+}
+
