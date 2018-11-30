@@ -218,7 +218,7 @@ ClientBase::send_goal_request(std::shared_ptr<void> request, ResponseCallback ca
   if (RCL_RET_OK != ret) {
     rclcpp::exceptions::throw_from_rcl_error(ret, "failed to send goal request");
   }
-  assert(pimpl_->pending_goal_responses.count(sequence_number) != 0);
+  assert(pimpl_->pending_goal_responses.count(sequence_number) == 0);
   pimpl_->pending_goal_responses[sequence_number] = callback;
 }
 
