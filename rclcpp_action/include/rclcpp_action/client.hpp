@@ -207,7 +207,6 @@ public:
           std::static_pointer_cast<GoalResponse>(response);
         if (!goal_response->accepted) {
           promise->set_exception(std::make_exception_ptr(exceptions::RejectedGoalError()));
-          exceptions::RejectedGoalError();
           return;
         }
         GoalInfo goal_info;

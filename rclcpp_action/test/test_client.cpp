@@ -58,7 +58,7 @@ TEST_F(TestClient, construction_and_destruction)
 
 TEST_F(TestClient, async_send_goal_without_feedback)
 {
-  //TODO(sservulo): add action server to test comm
+  // TODO(sservulo): add action server to test comm
   auto ac = rclcpp_action::create_client<test_msgs::action::Fibonacci>(node.get(), action_name);
 
   test_msgs::action::Fibonacci::Goal goal;
@@ -70,7 +70,7 @@ TEST_F(TestClient, async_send_goal_without_feedback)
 
 TEST_F(TestClient, async_send_goal_with_feedback)
 {
-  //TODO(sservulo): add action server to test comm
+  // TODO(sservulo): add action server to test comm
   auto ac = rclcpp_action::create_client<test_msgs::action::Fibonacci>(node.get(), action_name);
 
   test_msgs::action::Fibonacci::Goal goal;
@@ -85,17 +85,24 @@ TEST_F(TestClient, async_send_goal_with_feedback)
 
 TEST_F(TestClient, async_get_result)
 {
-  //TODO(sservulo): add action server to test comm
+  // TODO(sservulo): add action server to test comm
   auto ac = rclcpp_action::create_client<test_msgs::action::Fibonacci>(node.get(), action_name);
 
   test_msgs::action::Fibonacci::Goal goal;
   goal.order = 5;
   goal.uuid = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2};
+
+  // send goal and wait for future
   auto handle_future = ac->async_send_goal(goal, nullptr, true);
   handle_future.wait();
-  rclcpp_action::ClientGoalHandle<test_msgs::action::Fibonacci>::SharedPtr handle = handle_future.get();
+
+  // retrieve handle from future and ask for result future
+  rclcpp_action::ClientGoalHandle<test_msgs::action::Fibonacci>::SharedPtr handle =
+    handle_future.get();
   auto result_future = ac->async_get_result(handle);
   result_future.wait();
+
+  // check result
   test_msgs::action::Fibonacci::Result result = result_future.get();
   ASSERT_EQ(result.sequence[4], 5); // 1 1 2 3 5
 }
