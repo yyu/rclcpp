@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <rcl_action/names.h>
-
 #include <gtest/gtest.h>
 
 #include <rclcpp/exceptions.hpp>
@@ -24,6 +22,7 @@
 #include <memory>
 #include <string>
 
+#include "rclcpp_action/exceptions.hpp"
 #include "rclcpp_action/create_client.hpp"
 #include "rclcpp_action/client.hpp"
 #include "rclcpp_action/create_server.hpp"
@@ -65,17 +64,17 @@ void send_goal_mock(
   response->stamp = node.now();
 }
 
-void get_result_mock(
-  const std::shared_ptr<rmw_request_id_t> request_header,
-  const std::shared_ptr<test_msgs::action::Fibonacci::ResultRequestService::Request> request,
-  std::shared_ptr<test_msgs::action::Fibonacci::ResultRequestService::Response> response)
-{
-  (void)request_header;
-  (void)request;
-  response->sequence = {1, 1, 2, 3, 5};
-  rclcpp::Node node("mock");
-  response->stamp = node.now();
-}
+// void get_result_mock(
+//   const std::shared_ptr<rmw_request_id_t> request_header,
+//   const std::shared_ptr<test_msgs::action::Fibonacci::ResultRequestService::Request> request,
+//   std::shared_ptr<test_msgs::action::Fibonacci::ResultRequestService::Response> response)
+// {
+//   (void)request_header;
+//   (void)request;
+//   response->sequence = {1, 1, 2, 3, 5};
+//   rclcpp::Node node("mock");
+//   response->stamp = node.now();
+// }
 
 TEST_F(TestClient, construction_and_destruction)
 {
@@ -109,6 +108,24 @@ TEST_F(TestClient, async_send_goal_with_feedback)
     const test_msgs::action::Fibonacci::Feedback &) {};
 
   ASSERT_NO_THROW(ac->async_send_goal(goal, feedback_callback, false));
+}
+
+TEST_F(TestClient, duplicated_goal_uuid)
+{
+  node->create_service<test_msgs::action::Fibonacci::GoalRequestService>(
+    "fibonacci/_action/send_goal", send_goal_mock);
+
+  auto ac = rclcpp_action::create_client<test_msgs::action::Fibonacci>(node.get(), action_name);
+
+  test_msgs::action::Fibonacci::Goal goal;
+  goal.order = 5;
+  goal.uuid = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  auto handle_future = ac->async_send_goal(goal, nullptr, true);
+  handle_future.wait();
+
+  ASSERT_THROW(
+    ac->async_send_goal(goal, nullptr, true), rclcpp_action::exceptions::DuplicatedGoalUuidError);
 }
 
 // TEST_F(TestClient, async_get_result)
