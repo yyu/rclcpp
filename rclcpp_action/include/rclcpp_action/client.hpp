@@ -236,7 +236,7 @@ public:
   async_get_result(typename GoalHandle::SharedPtr goal_handle) {
     std::lock_guard<std::mutex> lock(goal_handles_mutex_);
     if (goal_handles_.count(goal_handle->get_goal_id()) == 0) {
-      throw exceptions::UnknownGoalHandleError(goal_handle);
+      throw exceptions::UnknownGoalHandleError();
     }
     if (!goal_handle->is_result_aware()) {
       this->make_result_aware(goal_handle);

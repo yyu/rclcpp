@@ -20,9 +20,12 @@
 #include <test_msgs/action/fibonacci.hpp>
 
 #include <memory>
+#include <string>
 
 #include "rclcpp_action/create_client.hpp"
 #include "rclcpp_action/client.hpp"
+#include "rclcpp_action/create_server.hpp"
+#include "rclcpp_action/server.hpp"
 
 class TestClient : public ::testing::Test
 {
@@ -55,6 +58,7 @@ TEST_F(TestClient, construction_and_destruction)
 
 TEST_F(TestClient, async_send_goal_without_feedback)
 {
+  //TODO(sservulo): add action server to test comm
   auto ac = rclcpp_action::create_client<test_msgs::action::Fibonacci>(node.get(), action_name);
 
   test_msgs::action::Fibonacci::Goal goal;
@@ -66,13 +70,33 @@ TEST_F(TestClient, async_send_goal_without_feedback)
 
 TEST_F(TestClient, async_send_goal_with_feedback)
 {
-  // auto ac = rclcpp_action::create_client<test_msgs::action::Fibonacci>(node.get(), action_name);
+  //TODO(sservulo): add action server to test comm
+  auto ac = rclcpp_action::create_client<test_msgs::action::Fibonacci>(node.get(), action_name);
 
-  // test_msgs::action::Fibonacci::Goal goal;
-  // auto feedback_callback = [] (
-  //   rclcpp_action::ClientGoalHandle<test_msgs::action::Fibonacci>::SharedPtr,
-  //   const test_msgs::action::Fibonacci::Feedback &) {};
+  test_msgs::action::Fibonacci::Goal goal;
+  goal.order = 5;
+  goal.uuid = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+  auto feedback_callback = [] (
+    rclcpp_action::ClientGoalHandle<test_msgs::action::Fibonacci>::SharedPtr,
+    const test_msgs::action::Fibonacci::Feedback &) {};
 
-  // ASSERT_NO_THROW(ac->async_send_goal(goal, feedback_callback, false));
+  ASSERT_NO_THROW(ac->async_send_goal(goal, feedback_callback, false));
+}
+
+TEST_F(TestClient, async_get_result)
+{
+  //TODO(sservulo): add action server to test comm
+  auto ac = rclcpp_action::create_client<test_msgs::action::Fibonacci>(node.get(), action_name);
+
+  test_msgs::action::Fibonacci::Goal goal;
+  goal.order = 5;
+  goal.uuid = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2};
+  auto handle_future = ac->async_send_goal(goal, nullptr, true);
+  handle_future.wait();
+  rclcpp_action::ClientGoalHandle<test_msgs::action::Fibonacci>::SharedPtr handle = handle_future.get();
+  auto result_future = ac->async_get_result(handle);
+  result_future.wait();
+  test_msgs::action::Fibonacci::Result result = result_future.get();
+  ASSERT_EQ(result.sequence[4], 5); // 1 1 2 3 5
 }
 
