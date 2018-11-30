@@ -115,17 +115,28 @@ TEST_F(TestClient, duplicated_goal_uuid)
   node->create_service<test_msgs::action::Fibonacci::GoalRequestService>(
     "fibonacci/_action/send_goal", send_goal_mock);
 
+  rclcpp::executors::MultiThreadedExecutor executor;
+
   auto ac = rclcpp_action::create_client<test_msgs::action::Fibonacci>(node.get(), action_name);
+  std::thread t([&ac, &executor]()
+  {
 
-  test_msgs::action::Fibonacci::Goal goal;
-  goal.order = 5;
-  goal.uuid = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    test_msgs::action::Fibonacci::Goal goal;
+    goal.order = 5;
+    goal.uuid = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2};
 
-  auto handle_future = ac->async_send_goal(goal, nullptr, true);
-  handle_future.wait();
+    auto handle_future = ac->async_send_goal(goal, nullptr, true);
+    handle_future.wait();
 
-  ASSERT_THROW(
-    ac->async_send_goal(goal, nullptr, true), rclcpp_action::exceptions::DuplicatedGoalUuidError);
+    ASSERT_THROW(
+      ac->async_send_goal(goal, nullptr, true), rclcpp_action::exceptions::DuplicatedGoalUuidError);
+    executor.cancel();
+  });
+
+  executor.add_node(node);
+  executor.spin();
+
+  t.join();
 }
 
 // TEST_F(TestClient, async_get_result)
@@ -172,4 +183,3 @@ TEST_F(TestClient, duplicated_goal_uuid)
 
 //   ASSERT_TRUE(cancel_future.get());
 // }
-
